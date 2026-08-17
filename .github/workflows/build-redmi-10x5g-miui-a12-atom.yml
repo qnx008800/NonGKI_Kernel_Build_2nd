@@ -1,0 +1,129 @@
+name: Build Redmi 10X 5G (Atom) (MIUI A12)
+on:
+  workflow_call:
+  workflow_dispatch:
+env:
+  # ==================== 设备信息 ====================
+  DEVICE_NAME: "Xiaomi_Redmi_10X_5G"
+  DEVICE_CODENAME: "atom"
+
+  # ==================== 编译器配置 ====================
+  # MTK 4.14 内核使用 LLVM Clang 17 + Google GCC 4.9
+  CUSTOM_CMDS: "CLANG_TRIPLE=aarch64-linux-gnu-"
+  EXTRA_CMDS: "LD=ld.lld LLVM=1 LLVM_IAS=1"
+
+  # ==================== 内核源码 ====================
+  # mt6873-dev 维护的 atom/bomb/cezanne 通用内核，已集成 SukiSU-Ultra
+  KERNEL_SOURCE: "https://github.com/mt6873-dev/android_kernel_xiaomi_mt6885"
+  KERNEL_BRANCH: "cgroup-v2"
+
+  # ==================== Clang 编译器 ====================
+  # LLVM Clang 17.0.6 — 对 4.14 内核兼容性好
+  CLANG_SOURCE: "https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/LLVM-17.0.6-Linux-X64.tar.xz"
+  CLANG_BRANCH: ""
+
+  # ==================== GCC 编译器 ====================
+  # MTK 4.14 内核还需要 GCC 编译部分组件
+  GCC_GNU: false
+  GCC_64_SOURCE: "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9.git"
+  GCC_64_BRANCH: "android12L-release"
+  GCC_32_SOURCE: "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9.git"
+  GCC_32_BRANCH: "android12L-release"
+
+  # ==================== 内核配置 ====================
+  # 来自 BoardConfig.mk: TARGET_KERNEL_CONFIG := vendor/atom_user_defconfig
+  DEFCONFIG_SOURCE: ""
+  DEFCONFIG_NAME: "vendor/atom_user_defconfig"
+  DEFCONFIG_ORIGIN_IMAGE: ""
+  DEFCONFIG_FROM_BOOT: false
+
+  # ==================== KernelSU 配置 ====================
+  # 此内核源码已集成 SukiSU-Ultra 子模块，使用 "only" 模式避免重复打补丁
+  KERNELSU_SOURCE: ""
+  KERNELSU_BRANCH: ""
+  KERNELSU_AUTO_GET: "true"
+  KERNELSU_AUTO_FORK: "sukisu"
+  KERNELSU_METHOD: "only"
+
+  # ==================== SUSFS 配置 ====================
+  # 启用 SUSFS，首次编译建议开启 DEBUGGER 和 SKIP_PATCH 查看补丁情况
+  SUSFS_ENABLE: true
+  SUSFS_FIXED: true
+  SUSFS_UPDATE: true
+  BUILD_DEBUGGER: "true"
+  SKIP_PATCH: "true"
+
+  # ==================== Hook 方式 ====================
+  # 4.14 内核 ARM64 使用 kprobes（最稳定）
+  HOOK_METHOD: "kprobes"
+  KERNEL_PATCH: "false"
+
+  # ==================== 补丁配置（首次编译留空，后续自行补充） ====================
+  PATCHES_SOURCE: ""
+  PATCHES_BRANCH: ""
+  SUSFS_FOLDER_FIXED: ""
+  SUSFS_PATCH_FIXED: ""
+
+  # ==================== 打包配置 ====================
+  PACK_METHOD: "Anykernel3"
+  PACK_KMODULES: "false"
+  AK3_SOURCE: "https://github.com/osm0sis/AnyKernel3.git"
+  AK3_BRANCH: "master"
+  BOOT_SOURCE: ""
+
+  # ==================== 其他配置 ====================
+  ROM_TEXT: "System_12"
+  PYTHON_VERSION: "3"
+  GENERATE_DTB: "false"
+  GENERATE_CHIP: "mediatek"
+  NEED_DTBO: false
+  NEED_SAFE_DTBO: false
+  FREE_MORE_SPACE: "true"
+
+  # ==================== 实验性功能（关闭） ====================
+  REKERNEL_ENABLE: "false"
+  DROIDSPACES_ENABLE: "false"
+  NOMOUNT_ENABLE: "false"
+  KPM_ENABLE: "false"
+  KPM_INLINE: "false"
+  KPM_KPATCH_NEXT: "false"
+  KPM_PATCH_SOURCE: ""
+  BASEBAND_GUARD_ENABLE: "false"
+  BASEBAND_GUARD_BOOT: "false"
+  BUILD_OTHER_CONFIG: "false"
+  MERGE_CONFIG_FILES: ""
+
+jobs:
+  build-kernel:
+    name: Build Kernel
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
+      CCACHE_NOHASHDIR: "true"
+      CCACHE_HARDLINK: "true"
+    steps:
+      - name: ⏰ Checkout repository
+        uses: actions/checkout@v6
+      - name: ⌛️ Compilation environment preparation
+        uses: ./.github/workflows/build-env
+      - name: ⚙️ Get neccssary tools
+        uses: ./.github/workflows/build-ready
+      - name: 🪝 Patch Kernel of SUSFS
+        uses: ./.github/workflows/patch-susfs
+      - name: 🔗 Patch for no-kprobe
+        uses: ./.github/workflows/patch-no-kprobe
+      - name: 🪛 Extra Kernel Options
+        run: |
+          cd $GITHUB_WORKSPACE/device_kernel
+      - name: 🧰 Patch Kernel of Re:Kernel
+        uses: ./.github/workflows/patch-rekernel
+      - name: 💿 Patch Kernel of Droidspaces
+        uses: ./.github/workflows/patch-droidspaces
+      - name: 🔒 Patch Kernel of Baseband Guard
+        uses: ./.github/workflows/patch-baseband-guard
+      - name: 🚀 Build Process
+        uses: ./.github/workflows/build-process
+      - name: 🔩 Pack Process
+        uses: ./.github/workflows/pack-process
+      - name: ✏️ Upload Artifacts
+        uses: ./.github/workflows/upload-files
