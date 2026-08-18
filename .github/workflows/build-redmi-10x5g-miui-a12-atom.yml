@@ -14,8 +14,8 @@ env:
 
   # ==================== 内核源码 ====================
   # mt6873-dev 维护的 atom/bomb/cezanne 通用内核，已集成 SukiSU-Ultra 子模块
-  KERNEL_SOURCE: "https://github.com/mt6873-dev/android_kernel_xiaomi_mt6885"
-  KERNEL_BRANCH: "cgroup-v2"
+  KERNEL_SOURCE: "https://github.com/XayahSuSuSu/kernel_redmi_mt6885"
+  KERNEL_BRANCH: "main"
 
   # ==================== Clang 编译器 ====================
   # 官方 Wiki：4.14 内核推荐 ZyC Clang 10
@@ -35,7 +35,7 @@ env:
   # 来自 BoardConfig.mk: TARGET_KERNEL_CONFIG := vendor/atom_user_defconfig
   # 内核源码中已确认存在: arch/arm64/configs/vendor/atom_user_defconfig
   DEFCONFIG_SOURCE: ""
-  DEFCONFIG_NAME: "vendor/atom_user_defconfig"
+  DEFCONFIG_NAME: "cezanne_user_defconfig"
   DEFCONFIG_ORIGIN_IMAGE: ""
   DEFCONFIG_FROM_BOOT: false
 
