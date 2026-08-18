@@ -49,7 +49,7 @@ env:
 
   # ==================== SUSFS 配置 ====================
   # 首次编译开启 DEBUGGER 和 SKIP_PATCH 收集 rej 文件
-  SUSFS_ENABLE: true
+  SUSFS_ENABLE: false
   SUSFS_FIXED: false
   SUSFS_UPDATE: false
   BUILD_DEBUGGER: "true"
