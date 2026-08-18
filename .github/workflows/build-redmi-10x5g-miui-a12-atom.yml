@@ -15,7 +15,7 @@ env:
   # ==================== 内核源码 ====================
   # mt6873-dev 维护的 atom/bomb/cezanne 通用内核，已集成 SukiSU-Ultra 子模块
   KERNEL_SOURCE: "https://github.com/XayahSuSuSu/kernel_redmi_mt6885"
-  KERNEL_BRANCH: "main"
+  KERNEL_BRANCH: "android-4.14-r-stable"
 
   # ==================== Clang 编译器 ====================
   # 官方 Wiki：4.14 内核推荐 ZyC Clang 10
